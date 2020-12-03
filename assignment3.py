@@ -100,13 +100,10 @@ def search(graph, node_x, node_y, list, path, paths):
 	list.append(node_x)
 	path.append(node_x) 
 	if node_x == node_y: 
-		print("Suche: Gefunden: {}".format(path))
 		paths.append(path.copy())
 	else: 
 		for child in graph.get_children(node_x): 
-			print("Kind: "+child)
 			if not child in list: 
-				print("Kind nicht in Liste: " + child)
 				search(graph, child, node_y, list, path, paths) 
 	path.pop() 
 	list.pop()
@@ -160,10 +157,20 @@ def is_path_open(dg, path, nodes_z):
 		--------
 		bool
 			False if the path is blocked given given the nodes_z, True otherwise.
-
 	"""
-	raise NotImplementedError("TODO Exercise 2.3")
-
+	open = True
+	for index in range(1,len(path) - 1):
+		if path[index-1] in dg.get_parents(path[index]) and path[index+1] in dg.get_parents(path[index]):
+			open = path[index] in nodes_z
+			for child in dg.get_children(path[index]):
+				open = open and child in nodes_z
+		elif path[index-1] in dg.get_children(path[index]) and path[index+1] in dg.get_children(path[index]):
+			open = path[index] not in nodes_z
+		else:
+			open = path[index] not in nodes_z
+		if not open:
+			break
+	return open
 
 def unblocked_path_exists(dg, node_x, node_y, nodes_z):
 	"""
@@ -188,8 +195,10 @@ def unblocked_path_exists(dg, node_x, node_y, nodes_z):
 			False if all undirected paths between node_x and node_y are blocked 
 			given the nodes_z, True otherwise.
 	"""
-	raise NotImplementedError("TODO Exercise 2.4")
-
+	for path in get_paths(dg,node_x,node_y): 
+		if is_path_open(dg, path, nodes_z):
+				return True
+	return False
 
 def check_independence(dg, nodes_x, nodes_y, nodes_z):
 	"""
@@ -216,8 +225,11 @@ def check_independence(dg, nodes_x, nodes_y, nodes_z):
 			True if all nodes in nodes_x are conditionally independent of all
 			nodes in nodes_y given the nodes in nodes_z, False otherwise.
 	"""
-	raise NotImplementedError("TODO Exercise 2.5")
-
+	for node_x in nodes_x:
+		for node_y in nodes_y:
+			if unblocked_path_exists(dg,node_x,node_y,nodes_z):
+				return False
+	return True
 
 def create_example_graph():
 	"""
@@ -241,7 +253,6 @@ def create_example_graph():
 	#dg.add_edge("A", "R") #neu
 	return dg
 
-
 if __name__ == "__main__":
 	# Example calls
 	g = create_example_graph()
@@ -263,4 +274,3 @@ if __name__ == "__main__":
 		nodes_z, unblocked_path_exists(g, "B", "R", nodes_z)))
 	print("Are Nodes B and R independent given nodes {}?: {}".format(
 		nodes_z, check_independence(g, ("B"), ("R"), nodes_z)))
-
